@@ -10,9 +10,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { neighborhoodsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const SquaresScreen = ({ navigation, route }) => {
   const { neighborhood } = route.params;
+  const { logout } = useAuth();
   const [squares, setSquares] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,6 +44,23 @@ const SquaresScreen = ({ navigation, route }) => {
     navigation.navigate('Houses', { square, neighborhood });
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'تسجيل الخروج',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
   const renderSquare = ({ item }) => (
     <TouchableOpacity
       style={styles.squareItem}
@@ -67,12 +86,18 @@ const SquaresScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutButtonText}>تسجيل الخروج</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>المربعات - {neighborhood.name}</Text>
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>← العودة</Text>
+          <Text style={styles.backButtonText}>العودة ←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>المربعات - {neighborhood.name}</Text>
       </View>
       
       <FlatList
@@ -104,13 +129,17 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  backButton: {
-    marginRight: 15,
+  logoutButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 5,
   },
-  backButtonText: {
+  logoutButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
   },
   headerTitle: {
@@ -119,6 +148,14 @@ const styles = StyleSheet.create({
     color: 'white',
     flex: 1,
     textAlign: 'center',
+  },
+  backButton: {
+    marginLeft: 15,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

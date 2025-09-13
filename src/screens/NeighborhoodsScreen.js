@@ -10,8 +10,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { neighborhoodsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const NeighborhoodsScreen = ({ navigation }) => {
+  const { logout } = useAuth();
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,6 +43,23 @@ const NeighborhoodsScreen = ({ navigation }) => {
     navigation.navigate('Squares', { neighborhood });
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'تسجيل الخروج',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
   const renderNeighborhood = ({ item }) => (
     <TouchableOpacity
       style={styles.neighborhoodItem}
@@ -65,7 +84,14 @@ const NeighborhoodsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutButtonText}>تسجيل الخروج</Text>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>الأحياء</Text>
+        <View style={styles.headerSpacer} />
       </View>
       
       <FlatList
@@ -95,12 +121,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     padding: 20,
     paddingTop: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  logoutButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 5,
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 80, // Same width as logout button to center the title
   },
   loadingContainer: {
     flex: 1,

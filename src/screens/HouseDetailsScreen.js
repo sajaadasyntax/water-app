@@ -115,13 +115,13 @@ const HouseDetailsScreen = ({ navigation, route }) => {
   };
 
   return (
-    <View style={[styles.container, { direction: 'rtl' }]}>
-      <View style={[styles.header, { direction: 'rtl' }]}>
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>العودة ←</Text>
+          <Text style={styles.backButtonText}>← العودة</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>تفاصيل المنزل</Text>
         <TouchableOpacity
@@ -136,68 +136,68 @@ const HouseDetailsScreen = ({ navigation, route }) => {
         <View style={styles.detailsCard}>
           <Text style={styles.cardTitle}>معلومات المنزل</Text>
           
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>{house.houseNumber}</Text>
-            <Text style={styles.detailLabel}>:رقم المنزل</Text>
+            <Text style={styles.detailLabel}>رقم المنزل:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>{house.ownerName}</Text>
-            <Text style={styles.detailLabel}>:اسم صاحب المنزل</Text>
+            <Text style={styles.detailLabel}>اسم صاحب المنزل:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>{house.ownerPhone}</Text>
-            <Text style={styles.detailLabel}>:هاتف صاحب المنزل</Text>
+            <Text style={styles.detailLabel}>هاتف صاحب المنزل:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>{neighborhood.name}</Text>
-            <Text style={styles.detailLabel}>:اسم الحي</Text>
+            <Text style={styles.detailLabel}>اسم الحي:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>{square.name}</Text>
-            <Text style={styles.detailLabel}>:رقم المربع</Text>
+            <Text style={styles.detailLabel}>رقم المربع:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={[
               styles.detailValue,
               { color: house.isOccupied ? '#2e7d32' : '#d32f2f' }
             ]}>
               {house.isOccupied ? 'نعم' : 'لا'}
             </Text>
-            <Text style={styles.detailLabel}>:المنزل مسكون</Text>
+            <Text style={styles.detailLabel}>المنزل مسكون:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>
               {getPaymentTypeName(house.paymentType)}
             </Text>
-            <Text style={styles.detailLabel}>:نوع العداد</Text>
+            <Text style={styles.detailLabel}>نوع العداد:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={[
               styles.detailValue,
               { color: house.hasPaid ? '#2e7d32' : '#d32f2f' }
             ]}>
               {house.hasPaid ? 'سدد' : 'لم يسدد'}
             </Text>
-            <Text style={styles.detailLabel}>:حالة الدفع</Text>
+            <Text style={styles.detailLabel}>حالة الدفع:</Text>
           </View>
 
-          <View style={[styles.detailRow, { direction: 'rtl' }]}>
+          <View style={styles.detailRow}>
             <Text style={styles.detailValue}>
               {house.requiredAmount || getPaymentAmount(house.paymentType)} جنيه سوداني
             </Text>
-            <Text style={styles.detailLabel}>:المبلغ المطلوب</Text>
+            <Text style={styles.detailLabel}>المبلغ المطلوب:</Text>
           </View>
 
           {receiptImage && (
-            <View style={[styles.receiptContainer, { direction: 'rtl' }]}>
-              <Text style={styles.receiptLabel}>:صورة الإيصال</Text>
+            <View style={styles.receiptContainer}>
+              <Text style={styles.receiptLabel}>صورة الإيصال:</Text>
               <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
               <TouchableOpacity
                 style={[styles.removeReceiptButton, savingImage && styles.disabledButton]}
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    marginRight: 15,
+    marginLeft: 15,
   },
   backButtonText: {
     color: 'white',
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 20,
     color: '#333',
   },
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'right',
     marginBottom: 20,
     color: '#333',
   },
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   paymentTypeText: {
     fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'right',
   },
   modalInput: {
     borderWidth: 1,
@@ -528,7 +528,8 @@ const styles = StyleSheet.create({
   },
   checkboxText: {
     fontSize: 16,
-    marginLeft: 10,
+    marginRight: 10,
+    textAlign: 'right',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -540,7 +541,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     flex: 1,
-    marginRight: 10,
+    marginLeft: 10,
   },
   cancelButtonText: {
     color: 'white',

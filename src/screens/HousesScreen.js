@@ -13,9 +13,11 @@ import {
 } from 'react-native';
 import { squaresAPI, housesAPI } from '../services/api';
 import { PAYMENT_TYPES, getPaymentTypeName, getPaymentAmount } from '../config/paymentTypes';
+import { useAuth } from '../context/AuthContext';
 
 const HousesScreen = ({ navigation, route }) => {
   const { square, neighborhood } = route.params;
+  const { logout } = useAuth();
   const [houses, setHouses] = useState([]);
   const [filteredHouses, setFilteredHouses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,6 +178,23 @@ const HousesScreen = ({ navigation, route }) => {
     );
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'تسجيل الخروج',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
   const renderHouse = ({ item }) => (
     <TouchableOpacity
       style={[
@@ -218,18 +237,26 @@ const HousesScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          style={styles.logoutButton}
+          onPress={handleLogout}
         >
-          <Text style={styles.backButtonText}>← العودة</Text>
+          <Text style={styles.logoutButtonText}>تسجيل الخروج</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>المنازل - {square.name}</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleAddPress}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRightButtons}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAddPress}
+          >
+            <Text style={styles.addButtonText}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>العودة ←</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Payment Summary */}
@@ -415,13 +442,17 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  backButton: {
-    marginRight: 15,
+  logoutButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 5,
   },
-  backButtonText: {
+  logoutButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
   },
   headerTitle: {
@@ -431,6 +462,10 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  headerRightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   addButton: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 20,
@@ -438,11 +473,20 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 10,
   },
   addButtonText: {
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  backButton: {
+    marginLeft: 10,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   summaryContainer: {
     backgroundColor: 'white',
