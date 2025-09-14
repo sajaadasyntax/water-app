@@ -23,9 +23,8 @@ const CameraComponentSimple = ({ visible, onClose, onImageTaken }) => {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        allowsEditing: false,
+        quality: 0.7, // Good quality with reasonable file size
       });
 
       if (!result.canceled) {
@@ -47,9 +46,8 @@ const CameraComponentSimple = ({ visible, onClose, onImageTaken }) => {
 
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        allowsEditing: false,
+        quality: 0.7, // Good quality with reasonable file size
       });
 
       if (!result.canceled) {

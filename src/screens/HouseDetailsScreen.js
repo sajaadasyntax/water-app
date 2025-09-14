@@ -13,9 +13,12 @@ import {
 import { housesAPI } from '../services/api';
 import { PAYMENT_TYPES, getPaymentTypeName, getPaymentAmount } from '../config/paymentTypes';
 import CameraComponentSimple from '../components/CameraComponentSimple';
+import { useAuth } from '../context/AuthContext';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const HouseDetailsScreen = ({ navigation, route }) => {
   const { house, neighborhood, square } = route.params;
+  const { isAdmin } = useAuth();
   const [showEditModal, setShowEditModal] = useState(false);
   const [formData, setFormData] = useState({
     houseNumber: house.houseNumber,
@@ -29,6 +32,31 @@ const HouseDetailsScreen = ({ navigation, route }) => {
   const [showCamera, setShowCamera] = useState(false);
   const [receiptImage, setReceiptImage] = useState(house.receiptImage);
   const [savingImage, setSavingImage] = useState(false);
+  const [hasPaid, setHasPaid] = useState(house.hasPaid);
+
+  const convertImageToBase64 = async (imageUri) => {
+    try {
+      // First, get image info to check size
+      const imageInfo = await FileSystem.getInfoAsync(imageUri);
+      console.log('Image size:', imageInfo.size, 'bytes');
+      
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      
+      // Check if base64 is too large (> 4MB base64 = ~3MB original image)
+      const maxBase64Length = 4000000; // ~4MB base64
+      if (base64.length > maxBase64Length) {
+        console.log('Base64 too large, returning error message');
+        throw new Error('Image too large. Please select a smaller image.');
+      }
+      
+      return `data:image/jpeg;base64,${base64}`;
+    } catch (error) {
+      console.error('Error converting image to base64:', error);
+      throw error;
+    }
+  };
 
   const handleEditPress = () => {
     setShowEditModal(true);
@@ -71,21 +99,28 @@ const HouseDetailsScreen = ({ navigation, route }) => {
   const handleImageTaken = async (imageUri) => {
     setSavingImage(true);
     try {
-      // Update the house with the receipt image
-      const response = await housesAPI.update(house.id, {
-        ...house,
-        receiptImage: imageUri
-      });
+      // Convert image to base64
+      const base64Image = await convertImageToBase64(imageUri);
+      
+      // Update the house with the receipt image and mark as paid
+      const response = await housesAPI.updateReceipt(house.id, base64Image, true);
       
       if (response.data) {
-        setReceiptImage(imageUri);
+        setReceiptImage(base64Image);
+        setHasPaid(true);
         // Update the house object in the route params
-        house.receiptImage = imageUri;
-        Alert.alert('نجح', 'تم حفظ صورة الإيصال بنجاح');
+        house.receiptImage = base64Image;
+        house.hasPaid = true;
+        house.lastPaymentDate = new Date().toISOString();
+        Alert.alert('نجح', 'تم حفظ صورة الإيصال وتم تحديث حالة الدفع');
       }
     } catch (error) {
       console.error('Error saving receipt image:', error);
-      Alert.alert('خطأ', 'فشل في حفظ صورة الإيصال');
+      if (error.message && error.message.includes('too large')) {
+        Alert.alert('خطأ', 'الصورة كبيرة جداً. يرجى اختيار صورة أصغر حجماً.');
+      } else {
+        Alert.alert('خطأ', 'فشل في حفظ صورة الإيصال');
+      }
     } finally {
       setSavingImage(false);
     }
@@ -94,17 +129,17 @@ const HouseDetailsScreen = ({ navigation, route }) => {
   const removeReceiptImage = async () => {
     setSavingImage(true);
     try {
-      // Update the house to remove the receipt image
-      const response = await housesAPI.update(house.id, {
-        ...house,
-        receiptImage: null
-      });
+      // Update the house to remove the receipt image and reset payment status
+      const response = await housesAPI.updateReceipt(house.id, null, false);
       
       if (response.data) {
         setReceiptImage(null);
+        setHasPaid(false);
         // Update the house object in the route params
         house.receiptImage = null;
-        Alert.alert('نجح', 'تم حذف صورة الإيصال بنجاح');
+        house.hasPaid = false;
+        house.lastPaymentDate = null;
+        Alert.alert('نجح', 'تم حذف صورة الإيصال وإعادة تعيين حالة الدفع');
       }
     } catch (error) {
       console.error('Error removing receipt image:', error);
@@ -124,12 +159,14 @@ const HouseDetailsScreen = ({ navigation, route }) => {
           <Text style={styles.backButtonText}>← العودة</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>تفاصيل المنزل</Text>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={handleEditPress}
-        >
-          <Text style={styles.editButtonText}>تعديل</Text>
-        </TouchableOpacity>
+        {isAdmin() && (
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={handleEditPress}
+          >
+            <Text style={styles.editButtonText}>تعديل</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.content}>
@@ -181,9 +218,9 @@ const HouseDetailsScreen = ({ navigation, route }) => {
           <View style={styles.detailRow}>
             <Text style={[
               styles.detailValue,
-              { color: house.hasPaid ? '#2e7d32' : '#d32f2f' }
+              { color: hasPaid ? '#2e7d32' : '#d32f2f' }
             ]}>
-              {house.hasPaid ? 'سدد' : 'لم يسدد'}
+              {hasPaid ? 'سدد' : 'لم يسدد'}
             </Text>
             <Text style={styles.detailLabel}>حالة الدفع:</Text>
           </View>
@@ -199,15 +236,17 @@ const HouseDetailsScreen = ({ navigation, route }) => {
             <View style={styles.receiptContainer}>
               <Text style={styles.receiptLabel}>صورة الإيصال:</Text>
               <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
-              <TouchableOpacity
-                style={[styles.removeReceiptButton, savingImage && styles.disabledButton]}
-                onPress={savingImage ? null : removeReceiptImage}
-                disabled={savingImage}
-              >
-                <Text style={styles.removeReceiptText}>
-                  {savingImage ? 'جاري الحذف...' : 'حذف الصورة'}
-                </Text>
-              </TouchableOpacity>
+              {isAdmin() && (
+                <TouchableOpacity
+                  style={[styles.removeReceiptButton, savingImage && styles.disabledButton]}
+                  onPress={savingImage ? null : removeReceiptImage}
+                  disabled={savingImage}
+                >
+                  <Text style={styles.removeReceiptText}>
+                    {savingImage ? 'جاري الحذف...' : 'حذف الصورة'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -228,12 +267,13 @@ const HouseDetailsScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      {/* Edit Modal */}
-      <Modal
-        visible={showEditModal}
-        animationType="slide"
-        transparent={true}
-      >
+      {/* Edit Modal - Only for Admins */}
+      {isAdmin() && (
+        <Modal
+          visible={showEditModal}
+          animationType="slide"
+          transparent={true}
+        >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>تعديل المنزل</Text>
@@ -331,6 +371,7 @@ const HouseDetailsScreen = ({ navigation, route }) => {
           </View>
         </View>
       </Modal>
+      )}
 
       {/* Camera Component */}
       <CameraComponentSimple

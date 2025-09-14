@@ -39,9 +39,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await authAPI.login(username, password);
-      const { token, userId, username: userUsername } = response.data;
+      const { token, userId, username: userUsername, role } = response.data;
       
-      const userData = { id: userId, username: userUsername };
+      const userData = { id: userId, username: userUsername, role };
       
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('user', JSON.stringify(userData));
@@ -78,12 +78,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Helper functions for role checking
+  const isAdmin = () => {
+    return user && user.role === 'ADMIN';
+  };
+
+  const isMobileUser = () => {
+    return user && user.role === 'MOBILE_USER';
+  };
+
+  const hasAccess = (requiredRole) => {
+    if (!user) return false;
+    if (requiredRole === 'ADMIN') return user.role === 'ADMIN';
+    if (requiredRole === 'MOBILE_USER') return user.role === 'MOBILE_USER' || user.role === 'ADMIN';
+    return false;
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
     loading,
+    isAdmin,
+    isMobileUser,
+    hasAccess,
   };
 
   return (

@@ -119,22 +119,24 @@ export const authAPI = {
 
 // Neighborhoods API
 export const neighborhoodsAPI = {
-  getAll: () => api.get('/neighborhoods'),
+  getAll: () => api.get('/mobile/neighborhoods'),
   getSquares: (neighborhoodId) => api.get(`/neighborhoods/${neighborhoodId}/squares`),
   create: (name) => api.post('/neighborhoods', { name }),
 };
 
 // Squares API
 export const squaresAPI = {
-  getHouses: (squareId) => api.get(`/squares/${squareId}/houses`),
+  getHouses: (squareId) => api.get(`/mobile/squares/${squareId}/houses`),
   create: (name, neighborhoodId) => api.post('/squares', { name, neighborhoodId }),
 };
 
 // Houses API
 export const housesAPI = {
-  create: (houseData) => api.post('/houses', houseData),
+  create: (houseData) => api.post('/mobile/houses', houseData),
   update: (id, houseData) => api.put(`/houses/${id}`, houseData),
+  updateReceipt: (id, receiptImage, hasPaid = true) => api.put(`/mobile/houses/${id}/receipt`, { receiptImage, hasPaid }),
   delete: (id) => api.delete(`/houses/${id}`),
+  getHouses: (squareId) => api.get(`/mobile/squares/${squareId}/houses`),
 };
 
 export default api;

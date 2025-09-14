@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext';
 
 const HousesScreen = ({ navigation, route }) => {
   const { square, neighborhood } = route.params;
-  const { logout } = useAuth();
+  const { logout, isAdmin, isMobileUser } = useAuth();
   const [houses, setHouses] = useState([]);
   const [filteredHouses, setFilteredHouses] = useState([]);
   const [loading, setLoading] = useState(true);
